@@ -70,8 +70,10 @@ class Reconciliation(object):
 
 if __name__ == '__main__':
     input_file = sys.argv[1]
+    output_file = None if not len(sys.argv) > 2 else sys.argv[2]
     if not input_file or not os.path.isfile(input_file):
         raise IOError('Must point to valid input file')
 
-    reconcile = Reconciliation(input_path=input_file)
+    reconcile = Reconciliation(input_path=input_file,
+                               output_path=output_file)
     reconcile(write=True)
