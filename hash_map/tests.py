@@ -1,5 +1,8 @@
+import string
+import random
 from unittest import TestCase
-from hash_map import HashMap, HashItem
+from utils import KeyValuePair, HashFunction
+from hash_map import HashMap
 
 
 class HashMapTestCase(TestCase):
@@ -69,18 +72,55 @@ class HashMapTestCase(TestCase):
 class HashItemTestCase(TestCase):
 
     def setUp(self):
-        self.item = HashItem('test', 'case')
+        self.item = KeyValuePair('test', 'case')
 
     def test_key_value(self):
-        item = HashItem('test', 'case')
+        item = KeyValuePair('test', 'case')
         self.assertEqual(item.key, 'test')
         self.assertEqual(item.value, 'case')
 
     def test__eq__(self):
-        item = HashItem('test', 'case')
+        item = KeyValuePair('test', 'case')
         self.assertEqual(item, 'test')
 
-    def test_hash(self):
-        self.assertEqual(HashItem.hash('test'), 117021616)
-        self.assertEqual(HashItem.hash('a'), 97)
-        self.assertEqual(HashItem.hash('aa'), 9797)
+
+class HashFunctionTestCase(TestCase):
+
+    def test_base_alphabet_hash(self):
+        self.assertEqual(HashFunction.base_alphabet('test'), 117021616)
+        self.assertEqual(HashFunction.base_alphabet('a'), 97)
+        self.assertEqual(HashFunction.base_alphabet('aa'), 9797)
+
+    def test_base_sha256_hash(self):
+        index = HashFunction.sha256('lorem') % 100
+        self.assertEqual(index, 94)
+        index = HashFunction.sha256('ipsum') % 100
+        self.assertEqual(index, 80)
+        index = HashFunction.sha256('dolor') % 100
+        self.assertEqual(index, 77)
+        index = HashFunction.sha256('sitamet') % 100
+        self.assertEqual(index, 14)
+
+    def test_prove_uniform_distribution_sha256(self):
+        """just a curiosity: show that numbers are uniformly distributed between 1 - BOUND"""
+        BOUND = 100
+        # seed random string of length 8
+        values = [HashFunction.sha256(
+                    ''.join(random.choice(string.printable) for x in range(8))
+                  ) % BOUND for test in range(10000)]
+        average = sum(values) / len(values)
+        # normally distributed between 1 - 100 -> yield average of 50
+        self.assertTrue(49 < average < 51)
+
+    def test_prove_uniform_distribution_baseN(self):
+        """just a curiosity: show that numbers are uniformly distributed between 1 - BOUND
+            - shows slightly worse uniformity than sha256, with ~48.5
+        """
+        BOUND = 100
+        # seed random string of length 8
+        values = [HashFunction.base_alphabet(
+                    ''.join(random.choice(string.printable) for x in range(8))
+                  ) % BOUND for test in range(10000)]
+        average = sum(values) / len(values)
+        # normally distributed between 1 - 100 -> yield average of 50
+        self.assertTrue(48 < average < 52)

@@ -1,29 +1,4 @@
-import string
-
-
-class HashItem(object):
-    # each item in hash_map
-    ALPHABET = string.printable
-    RANGE = len(ALPHABET)
-
-    @classmethod
-    def hash(cls, value):
-        assert type(value) is str
-        key_length = len(value)
-        return sum(
-            cls.RANGE ** (key_length - (x + 1)) * ord(value[x])
-            for x in range(key_length)
-        )
-
-    def __init__(self, key, value):
-        for c in key:
-            assert c in self.ALPHABET
-
-        self.key = key
-        self.value = value
-
-    def __eq__(self, other):
-        return self.key == other
+from utils import KeyValuePair, HashFunction
 
 
 class HashMap(object):
@@ -40,14 +15,18 @@ class HashMap(object):
         - if hash collision occurs, simply store in adjacent cell
         - w each lookup, check if key matches, else check adjacent cell
         - worsens lookup by O(n + m) where m is
+
+    5. double size if hash map becomes full
     """
 
     NUM_SLOTS = 127  # 2^7-1
     BUFFER = 5  # threshold to double size of array
+    HASH_FUNCTION = HashFunction.base_alphabet
 
     def get_index(self, key):
-        index = HashItem.hash(key) % self.size
+        index = self.HASH_FUNCTION(key) % self.size
         while self.array[index] is not None:
+            # amortized lookup (not quite O(1))
             if self.array[index].key == key:
                 break
 
@@ -71,7 +50,7 @@ class HashMap(object):
 
     def __setitem__(self, key, value):
         """implements sequential probing"""
-        item = HashItem(key, value)
+        item = KeyValuePair(key, value)
         index = self.get_index(item.key)
         self.array[index] = item
 
